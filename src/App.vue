@@ -1,24 +1,16 @@
+
+
 <template>
-  <div>
-    <h1>home</h1>
-    <div v-for="product in products" :key="product.id">
-      <p>{{ product.name }}</p>
-    </div>
-  </div>
+  <v-app>
+    <NavBar />
+    <v-main>
+      <router-view />
+    </v-main>
+    <SiteFooter />
+  </v-app>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
-import { getProducts } from './composables/fetchAllProducts';
-
-const products = ref([]);
-
-const fetchProducts = async () => {
-  products.value = await getProducts();
-};
-
-
-onMounted(() => {
-  fetchProducts();
-});
+import NavBar from './components/NavBar.vue';
+import SiteFooter from './components/FooterComponent.vue';
 </script>
