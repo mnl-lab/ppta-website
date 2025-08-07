@@ -28,7 +28,7 @@ body {
   scroll-behavior: smooth;
 }
 
-#app {
+#app, .v-application {
   min-height: 100vh;
   position: relative;
 }

@@ -105,7 +105,6 @@
                     <v-list-item-subtitle class="text-body-1">
                       <div class="d-flex flex-column ga-1">
                         <v-chip color="primary" variant="outlined" size="small">05 22 24 75 61</v-chip>
-                        <v-chip color="primary" variant="outlined" size="small">06 64 77 13 47</v-chip>
                         <v-chip color="primary" variant="outlined" size="small">06 61 27 55 00</v-chip>
                       </div>
                     </v-list-item-subtitle>
