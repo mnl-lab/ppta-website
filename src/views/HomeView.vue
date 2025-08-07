@@ -3,8 +3,8 @@
     <!-- Hero Section -->
     <section class="hero">
       <div class="container">
-        <h1 class="hero-title">Discover Our Products</h1>
-        <p class="hero-subtitle">Explore our extensive collection across different categories</p>
+        <h1 class="hero-title">Découvrez Nos Produits</h1>
+        <p class="hero-subtitle">Explorez notre vaste collection à travers différentes catégories</p>
       </div>
     </section>
 
@@ -33,7 +33,7 @@
     <section v-if="selectedCategory && currentView === 'categories'" class="category-content">
       <div class="container">
         <Transition name="fade" mode="out-in">
-          <LoadingSpinner v-if="loading" message="Loading products..." />
+          <LoadingSpinner v-if="loading" message="Chargement des produits..." />
           <div v-else :key="selectedCategory.id" class="category-section">
             <h2 class="category-title">{{ selectedCategory.name }}</h2>
 
@@ -41,7 +41,7 @@
             <div class="subcategories-list">
               <div v-for="subcategory in subcategoriesWithProducts" :key="subcategory.id" class="subcategory-section">
                 <h3 class="subcategory-title">{{ subcategory.name }}</h3>
-                <p class="subcategory-count">{{ subcategory.products.length }} products</p>
+                <p class="subcategory-count">{{ subcategory.products.length }} produits</p>
 
                 <!-- Products Grid -->
                 <div v-if="subcategory.products.length > 0" class="products-grid">
@@ -58,7 +58,7 @@
 
                 <!-- No Products Message -->
                 <div v-else class="no-products">
-                  <p>No products available in this subcategory</p>
+                  <p>Aucun produit disponible dans cette sous-catégorie</p>
                 </div>
               </div>
             </div>
@@ -70,7 +70,7 @@
     <!-- Services Content -->
     <section v-if="currentView === 'services'" class="services-content">
       <div class="container">
-        <h2 class="services-title">Our Services</h2>
+        <h2 class="services-title">Nos Services</h2>
 
         <!-- Services Grid -->
         <div v-if="services.length > 0" class="services-grid">
@@ -86,7 +86,7 @@
 
         <!-- No Services Message -->
         <div v-else class="no-services">
-          <p>No services available at the moment</p>
+          <p>Aucun service disponible pour le moment</p>
         </div>
       </div>
     </section>
@@ -95,8 +95,8 @@
     <section v-else-if="currentView === 'categories'" class="default-content">
       <div class="container">
         <div class="welcome-message">
-          <h2>Welcome to Our Store</h2>
-          <p>Select a category above to explore our products</p>
+          <h2>Bienvenue dans Notre Magasin</h2>
+          <p>Sélectionnez une catégorie ci-dessus pour explorer nos produits</p>
         </div>
       </div>
     </section>
