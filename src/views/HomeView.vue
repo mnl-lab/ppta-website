@@ -1,4 +1,5 @@
 <template>
+
   <div class="home">
     <!-- Hero Section -->
     <section class="hero">
@@ -595,3 +596,4 @@ const selectServices = () => {
   }
 }
 </style>
+

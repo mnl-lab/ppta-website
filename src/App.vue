@@ -1,31 +1,19 @@
+
+
 <template>
+
   <div id="app">
-    <router-view />
-    <!-- Product Modal -->
-    <ProductModal v-if="showModal" :product="selectedProduct" @close="closeModal" />
+    <    <NavBar />
+    <v-main>
+      <router-view />
+    </v-main>
+    <SiteFooter />
   </div>
 </template>
 
 <script setup>
-import { provide, ref } from 'vue'
-import ProductModal from './components/ProductModal.vue'
-
-const showModal = ref(false)
-const selectedProduct = ref(null)
-
-const openProductModal = (product) => {
-  selectedProduct.value = product
-  showModal.value = true
-}
-
-const closeModal = () => {
-  showModal.value = false
-  selectedProduct.value = null
-}
-
-// Provide modal functions to child components
-provide('openProductModal', openProductModal)
-provide('closeModal', closeModal)
+import NavBar from './components/NavBar.vue';
+import SiteFooter from './components/FooterComponent.vue';
 </script>
 
 <style>
@@ -177,3 +165,4 @@ body {
   }
 }
 </style>
+
