@@ -1,3 +1,9 @@
 <template>
-  <h1>home</h1>
+  <div>
+    <!-- Homepage content removed -->
+  </div>
 </template>
+
+<script setup>
+// Page d'accueil de PPTA
+</script>
