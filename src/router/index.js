@@ -8,11 +8,6 @@ const routes = [
     component: HomeView
   },
   {
-    path: '/category/:categoryName/subcategory/:subcategoryName',
-    name: 'subcategory',
-    component: () => import('../views/SubcategoryView.vue')
-  },
-  {
     path: '/about',
     name: 'about',
     component: () => import('../views/AboutView.vue')
