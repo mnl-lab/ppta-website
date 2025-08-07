@@ -8,24 +8,9 @@ const routes = [
     component: HomeView
   },
   {
-    path: '/category/:categoryName/subcategory/:subcategoryName',
-    name: 'subcategory',
-    component: () => import('../views/SubcategoryView.vue')
-  },
-  {
     path: '/about',
     name: 'about',
     component: () => import('../views/AboutView.vue')
-  },
-  {
-    path: '/produits',
-    name: 'produits',
-    component: () => import('../views/ProduitsView.vue')
-  },
-  {
-    path: '/produits/:id',
-    name: 'produit-detail',
-    component: () => import('../views/ProduitDetailView.vue')
   },
   {
     path: '/contact',

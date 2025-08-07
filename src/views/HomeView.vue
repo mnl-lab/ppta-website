@@ -36,7 +36,7 @@
         <Transition name="fade" mode="out-in">
           <LoadingSpinner v-if="loading" message="Chargement des produits..." />
           <div v-else :key="selectedCategory.id" class="category-section">
-            <h2 class="category-title">{{ selectedCategory.name }}</h2>
+            
 
             <!-- Subcategories with Products -->
             <div class="subcategories-list">
