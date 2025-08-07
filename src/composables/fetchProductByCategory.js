@@ -1,10 +1,10 @@
 import { supabase } from '../../supabase.js'
 
-export async function fetchProductByCategory(category) {
+export async function fetchProductByCategory(categoryID) {
   const { data, error } = await supabase
     .from('product')
     .select('*')
-    .eq('category', category);
+    .eq('category', categoryID);
 
   if (error) {
     console.error('Error fetching products by category:', error);

@@ -9,6 +9,6 @@ export async function fetchAllSubCategories() {
     console.error("Error fetching subcategories:", error);
     return [];
   }
-
+  console.log('Fetched subcategories:', data);
   return data;
 }
