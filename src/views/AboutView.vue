@@ -7,6 +7,8 @@
           <h1 class="text-h3 font-weight-bold mb-6" style="color: #142445;">
             Présentation de la Société PPTA
           </h1>
+
+          <!-- (Video moved to right image section) -->
           
           <div class="mb-6">
             <p class="text-body-1 mb-4 text-justify">
@@ -103,11 +105,18 @@
       </v-col>
       
       <!-- Image Section (Right) -->
-      <v-col cols="12" md="6" class="pa-0">
+      <v-col cols="12" md="6" class="pa-0 about-media-col">
         <div 
           class="about-image-section"
           :style="{ backgroundImage: `url(${backgroundImage})` }"
-        ></div>
+  ></div>
+        <div class="about-video-box">
+          <div id="about-video-player" class="about-video-iframe" aria-label="Présentation PPTA"></div>
+          <div v-if="showUnmuteHint" class="unmute-hint" @click="activateSound">
+            <v-icon size="36" class="me-2">mdi-volume-high</v-icon>
+            Activer le son
+          </div>
+        </div>
       </v-col>
     </v-row>
   </v-container>
@@ -115,7 +124,78 @@
 
 <script setup>
 // Page À propos avec contenu détaillé de PPTA
+import { onMounted, ref } from 'vue'
 import backgroundImage from '@/assets/contact-background.png'
+
+const showUnmuteHint = ref(true)
+let ytPlayer = null
+
+function loadYouTubeApi() {
+  if (window.YT && window.YT.Player) {
+    initPlayer()
+    return
+  }
+  const tag = document.createElement('script')
+  tag.src = 'https://www.youtube.com/iframe_api'
+  document.head.appendChild(tag)
+  window.onYouTubeIframeAPIReady = () => initPlayer()
+}
+
+function initPlayer() {
+  ytPlayer = new window.YT.Player('about-video-player', {
+    videoId: 'YFTtGxDACw8',
+    playerVars: {
+      autoplay: 1,
+      controls: 0,
+      playsinline: 1,
+      modestbranding: 1,
+      rel: 0,
+      loop: 1,
+      playlist: 'YFTtGxDACw8'
+    },
+    events: {
+      onReady: (e) => {
+        try {
+          e.target.unMute()
+          e.target.setVolume(100)
+          e.target.playVideo()
+          // If browser allowed sound autoplay, hide hint.
+          setTimeout(() => { if (e.target.isMuted && !e.target.isMuted()) showUnmuteHint.value = false }, 800)
+        } catch (err) {
+          // Will likely need user gesture; keep hint visible.
+          console.warn('Autoplay with sound blocked:', err)
+        }
+      },
+      onStateChange: (ev) => {
+        if (ev.data === window.YT.PlayerState.PLAYING) {
+          // If actually playing with sound unmuted hide hint
+          try {
+            if (!ytPlayer.isMuted()) showUnmuteHint.value = false
+          } catch (err) {
+            // ignore
+          }
+        }
+      }
+    }
+  })
+}
+
+function activateSound() {
+  if (ytPlayer) {
+    try {
+      ytPlayer.unMute()
+      ytPlayer.setVolume(100)
+      ytPlayer.playVideo()
+      showUnmuteHint.value = false
+    } catch(err) {
+      console.warn('Unable to activate sound yet', err)
+    }
+  }
+}
+
+onMounted(() => {
+  loadYouTubeApi()
+})
 </script>
 
 <style scoped>
@@ -127,10 +207,83 @@ import backgroundImage from '@/assets/contact-background.png'
   background-repeat: no-repeat;
 }
 
+.about-media-col {
+  position: relative;
+  overflow: hidden;
+}
+
+.about-video-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 50%; /* occupy about half of the image section height */
+  width: 80%;
+  max-width: 820px;
+  min-height: 260px;
+  background: #000;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px -8px rgba(0,0,0,0.45);
+  border: 2px solid rgba(255,255,255,0.25);
+}
+
+.about-video-box::after { /* subtle gradient overlay for readability */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, rgba(20,36,69,0.50) 0%, rgba(20,36,69,0.15) 55%, rgba(20,36,69,0.05) 100%);
+  pointer-events: none;
+}
+
+.about-video-iframe {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 0;
+}
+
+.unmute-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20,36,69,0.85);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 40px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background .25s ease, transform .25s ease;
+  box-shadow: 0 4px 18px -4px rgba(0,0,0,0.45);
+}
+
+.unmute-hint:hover {
+  background: rgba(20,36,69,0.95);
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.about-video-box:hover {
+  box-shadow: 0 16px 48px -6px rgba(0,0,0,0.55);
+}
+
 @media (max-width: 960px) {
   .about-image-section {
     height: 400px;
     min-height: 400px;
+  }
+  .about-video-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    height: 55%;
+    border-radius: 14px;
   }
 }
 </style>

@@ -5,7 +5,7 @@
         <img 
           :src="logoImage" 
           alt="Polypièces Transmission Logo" 
-          style="height: 45px; margin-right: 16px;"
+          style="height: 70px; margin-right: 20px;"
         />
         <div class="d-none d-sm-block">
           <h3 class="text-h6 font-weight-bold" style="color: #142445;">

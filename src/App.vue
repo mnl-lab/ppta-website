@@ -1,14 +1,11 @@
-
-
 <template>
-
-  <div id="app">
-    <    <NavBar />
+  <v-app>
+    <NavBar />
     <v-main>
       <router-view />
     </v-main>
     <SiteFooter />
-  </div>
+  </v-app>
 </template>
 
 <script setup>
@@ -31,7 +28,7 @@ body {
   scroll-behavior: smooth;
 }
 
-#app {
+#app, .v-application {
   min-height: 100vh;
   position: relative;
 }
