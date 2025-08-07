@@ -1,14 +1,11 @@
-
-
 <template>
-
-  <div id="app">
-    <    <NavBar />
+  <v-app>
+    <NavBar />
     <v-main>
       <router-view />
     </v-main>
     <SiteFooter />
-  </div>
+  </v-app>
 </template>
 
 <script setup>
@@ -165,4 +162,3 @@ body {
   }
 }
 </style>
-
