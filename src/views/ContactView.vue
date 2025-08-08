@@ -113,4 +113,75 @@ import backgroundImage from '@/assets/contact-background.png'
   height: 300px;
   overflow: hidden;
 }
+
+/* Responsive improvements */
+@media (max-width: 960px) {
+  .map-container {
+    height: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .map-container {
+    height: 220px;
+  }
+
+  .contact-background-image {
+    opacity: 0.7;
+  }
+}
+
+@media (max-width: 600px) {
+  .map-container {
+    height: 200px;
+  }
+
+  .v-card-title {
+    font-size: 1.75rem !important;
+    padding: 20px !important;
+  }
+
+  .v-list-item-title {
+    font-size: 1.2rem !important;
+  }
+
+  .v-chip {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .map-container {
+    height: 180px;
+  }
+
+  .v-card-title {
+    font-size: 1.5rem !important;
+    padding: 16px !important;
+  }
+
+  .v-list-item-title {
+    font-size: 1.1rem !important;
+  }
+
+  .v-chip {
+    font-size: 0.8rem;
+    margin: 2px;
+  }
+
+  .d-flex.flex-column.ga-1 .v-chip {
+    margin-bottom: 4px;
+  }
+}
+
+@media (max-width: 360px) {
+  .map-container {
+    height: 160px;
+  }
+
+  .v-card-title {
+    font-size: 1.3rem !important;
+    padding: 14px !important;
+  }
+}
 </style>

@@ -28,7 +28,8 @@ body {
   scroll-behavior: smooth;
 }
 
-#app, .v-application {
+#app,
+.v-application {
   min-height: 100vh;
   position: relative;
 }
@@ -145,6 +146,23 @@ body {
 }
 
 /* Responsive utilities */
+@media (max-width: 1200px) {
+  .container {
+    padding: 0 24px;
+  }
+}
+
+@media (max-width: 960px) {
+  .container {
+    padding: 0 20px;
+  }
+
+  .btn {
+    padding: 11px 22px;
+    font-size: 0.95rem;
+  }
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 0 16px;
@@ -156,9 +174,49 @@ body {
   }
 }
 
+@media (max-width: 600px) {
+  .container {
+    padding: 0 14px;
+  }
+
+  .btn {
+    padding: 9px 18px;
+    font-size: 0.85rem;
+  }
+}
+
 @media (max-width: 480px) {
   .container {
     padding: 0 12px;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .container {
+    padding: 0 10px;
+  }
+
+  .btn {
+    padding: 7px 14px;
+    font-size: 0.75rem;
+  }
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+    /* iOS recommended touch target size */
+  }
+
+  .btn:hover {
+    transform: none;
+    /* Disable hover transforms on touch devices */
   }
 }
 </style>
