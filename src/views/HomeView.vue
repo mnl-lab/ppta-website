@@ -36,7 +36,7 @@
         <Transition name="fade" mode="out-in">
           <LoadingSpinner v-if="loading" message="Chargement des produits..." />
           <div v-else :key="selectedCategory.id" class="category-section">
-            
+
 
             <!-- Subcategories with Products -->
             <div class="subcategories-list">
@@ -46,9 +46,10 @@
 
                 <!-- Products Grid -->
                 <div v-if="subcategory.products.length > 0" class="products-grid">
-                  <div v-for="product in subcategory.products" :key="product.id" class="product-card">
+                  <div v-for="product in subcategory.products" :key="product.id" class="product-card"
+                    @click="openProductModal(product)">
                     <div class="product-image">
-                      <img :src="product.image_url || '/placeholder-image.jpg'" :alt="product.name" />
+                      <img :src="getFirstImage(product.images) || '/placeholder-image.jpg'" :alt="product.name" />
                     </div>
                     <div class="product-info">
                       <h4 class="product-name">{{ product.name }}</h4>
@@ -101,10 +102,60 @@
         </div>
       </div>
     </section>
+
+    <!-- Product Modal -->
+    <div v-if="showModal" class="modal-overlay" @click="closeModal">
+      <div class="modal-content" @click.stop>
+        <button class="modal-close" @click="closeModal">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <div class="modal-header">
+          <h2 class="modal-title">{{ selectedProduct?.name }}</h2>
+        </div>
+
+        <div class="modal-body">
+          <div class="modal-images">
+            <div class="images-gallery-container">
+              <button class="gallery-arrow gallery-arrow-left" @click="scrollGallery('left')" :disabled="!canScrollLeft"
+                v-show="getProductImages(selectedProduct?.images).length > 1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </button>
+
+              <div class="images-container" ref="imagesContainer" @scroll="updateScrollButtons">
+                <div v-for="(imageUrl, index) in getProductImages(selectedProduct?.images)" :key="index"
+                  class="modal-image">
+                  <img :src="imageUrl" :alt="`${selectedProduct?.name} - Image ${index + 1}`" />
+                </div>
+              </div>
+
+              <button class="gallery-arrow gallery-arrow-right" @click="scrollGallery('right')"
+                :disabled="!canScrollRight" v-show="getProductImages(selectedProduct?.images).length > 1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-description">
+            <p v-if="selectedProduct?.description">{{ selectedProduct.description }}</p>
+            <p v-else class="no-description">Aucune description disponible</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { fetchAllCategories } from '@/composables/fetchAllCategories';
 import { fetchSubcategoryByCategory } from '@/composables/fetchSubcategoryByCategory';
 import { fetchProductBySubcategory } from '@/composables/fetchProductBySubcategory';
@@ -117,6 +168,11 @@ const loading = ref(true);
 const subcategories = ref([]);
 const subcategoriesWithProducts = ref([]);
 const currentView = ref('categories'); // 'categories' or 'services'
+const showModal = ref(false);
+const selectedProduct = ref(null);
+const imagesContainer = ref(null);
+const canScrollLeft = ref(false);
+const canScrollRight = ref(false);
 
 onMounted(async () => {
   categories.value = await fetchAllCategories();
@@ -153,6 +209,78 @@ const selectCategory = async (category) => {
 const selectServices = () => {
   currentView.value = 'services';
   selectedCategory.value = null;
+};
+
+// Helper function to get the first image from the images JSON
+const getFirstImage = (images) => {
+  if (!images) return null;
+
+  try {
+    const imageObj = typeof images === 'string' ? JSON.parse(images) : images;
+    const keys = Object.keys(imageObj);
+    return keys.length > 0 ? imageObj[keys[0]] : null;
+  } catch (error) {
+    console.error('Error parsing images:', error);
+    return null;
+  }
+};
+
+// Helper function to get all images from the images JSON
+const getProductImages = (images) => {
+  if (!images) return [];
+
+  try {
+    const imageObj = typeof images === 'string' ? JSON.parse(images) : images;
+    return Object.values(imageObj);
+  } catch (error) {
+    console.error('Error parsing images:', error);
+    return [];
+  }
+};
+
+// Modal functions
+const openProductModal = async (product) => {
+  selectedProduct.value = product;
+  showModal.value = true;
+  document.body.style.overflow = 'hidden';
+
+  // Wait for the modal to render then update scroll buttons
+  await nextTick();
+  updateScrollButtons();
+};
+
+const closeModal = () => {
+  showModal.value = false;
+  selectedProduct.value = null;
+  document.body.style.overflow = 'auto';
+};
+
+// Gallery scroll functions
+const scrollGallery = (direction) => {
+  if (!imagesContainer.value) return;
+
+  const scrollAmount = 220; // Width of one image + gap
+  const currentScroll = imagesContainer.value.scrollLeft;
+
+  if (direction === 'left') {
+    imagesContainer.value.scrollTo({
+      left: currentScroll - scrollAmount,
+      behavior: 'smooth'
+    });
+  } else {
+    imagesContainer.value.scrollTo({
+      left: currentScroll + scrollAmount,
+      behavior: 'smooth'
+    });
+  }
+};
+
+const updateScrollButtons = () => {
+  if (!imagesContainer.value) return;
+
+  const container = imagesContainer.value;
+  canScrollLeft.value = container.scrollLeft > 0;
+  canScrollRight.value = container.scrollLeft < (container.scrollWidth - container.clientWidth);
 };
 
 
@@ -595,5 +723,263 @@ const selectServices = () => {
     min-width: 250px;
   }
 }
-</style>
 
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 1001;
+  backdrop-filter: blur(10px);
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+}
+
+.modal-close svg {
+  color: rgb(20, 36, 69);
+}
+
+.modal-header {
+  padding: 30px 30px 0 30px;
+}
+
+.modal-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgb(20, 36, 69);
+  margin: 0;
+  text-transform: capitalize;
+  line-height: 1.2;
+  padding-right: 60px;
+}
+
+.modal-body {
+  padding: 20px 30px 30px 30px;
+}
+
+.modal-images {
+  margin-bottom: 30px;
+}
+
+.images-gallery-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.gallery-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #e2e8f0;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.gallery-arrow:hover:not(:disabled) {
+  background: white;
+  border-color: rgb(20, 36, 69);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 20px rgba(20, 36, 69, 0.2);
+}
+
+.gallery-arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: translateY(-50%);
+}
+
+.gallery-arrow svg {
+  color: rgb(20, 36, 69);
+  transition: color 0.3s ease;
+}
+
+.gallery-arrow-left {
+  left: -22px;
+}
+
+.gallery-arrow-right {
+  right: -22px;
+}
+
+.images-container {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 0 24px 16px 24px;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+}
+
+.images-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.images-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.images-container::-webkit-scrollbar-thumb {
+  background: rgb(20, 36, 69);
+  border-radius: 4px;
+}
+
+.modal-image {
+  flex-shrink: 0;
+  width: 200px;
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.modal-image:hover {
+  transform: scale(1.05);
+}
+
+.modal-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-description {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 24px;
+  border-left: 4px solid rgb(20, 36, 69);
+}
+
+.modal-description p {
+  margin: 0;
+  line-height: 1.6;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.no-description {
+  color: #9ca3af !important;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 10px;
+  }
+
+  .modal-content {
+    max-height: 95vh;
+    border-radius: 16px;
+  }
+
+  .modal-header {
+    padding: 20px 20px 0 20px;
+  }
+
+  .modal-title {
+    font-size: 1.5rem;
+    padding-right: 50px;
+  }
+
+  .modal-body {
+    padding: 15px 20px 20px 20px;
+  }
+
+  .modal-close {
+    top: 15px;
+    right: 15px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .gallery-arrow {
+    width: 36px;
+    height: 36px;
+  }
+
+  .gallery-arrow-left {
+    left: -18px;
+  }
+
+  .gallery-arrow-right {
+    right: -18px;
+  }
+
+  .images-container {
+    padding: 0 20px 16px 20px;
+  }
+
+  .modal-image {
+    width: 150px;
+    height: 150px;
+  }
+
+  .modal-description {
+    padding: 20px;
+  }
+}
+</style>
