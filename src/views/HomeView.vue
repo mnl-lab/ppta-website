@@ -1,11 +1,42 @@
 <template>
 
   <div class="home">
-    <!-- Hero Section -->
-    <section class="hero">
-      <div class="container">
-        <h1 class="hero-title">Découvrez Nos Produits</h1>
-        <p class="hero-subtitle">Explorez notre vaste collection à travers différentes catégories</p>
+    <!-- Hero Slideshow Section -->
+    <section class="hero-slideshow">
+      <div class="slideshow-container">
+        <div class="slide" v-for="(image, index) in slideshowImages" :key="index"
+          :class="{ active: currentSlide === index }" :style="{ backgroundImage: `url(${image})` }">
+        </div>
+
+        <!-- Navigation arrows -->
+        <button class="slide-arrow slide-arrow-prev" @click="previousSlide" aria-label="Image précédente">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+        <button class="slide-arrow slide-arrow-next" @click="nextSlide" aria-label="Image suivante">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <!-- Slide indicators -->
+        <div class="slide-indicators">
+          <button v-for="(image, index) in slideshowImages" :key="index"
+            :class="['slide-indicator', { active: currentSlide === index }]" @click="goToSlide(index)"
+            :aria-label="`Aller à l'image ${index + 1}`">
+          </button>
+        </div>
+
+        <!-- Overlay content -->
+        <div class="slideshow-overlay">
+          <div class="container">
+            <h1 class="hero-title">Découvrez Nos Produits</h1>
+            <p class="hero-subtitle">Explorez notre vaste collection à travers différentes catégories</p>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -36,7 +67,7 @@
         <Transition name="fade" mode="out-in">
           <LoadingSpinner v-if="loading" message="Chargement des produits..." />
           <div v-else :key="selectedCategory.id" class="category-section">
-            
+
 
             <!-- Subcategories with Products -->
             <div class="subcategories-list">
@@ -46,9 +77,10 @@
 
                 <!-- Products Grid -->
                 <div v-if="subcategory.products.length > 0" class="products-grid">
-                  <div v-for="product in subcategory.products" :key="product.id" class="product-card">
+                  <div v-for="product in subcategory.products" :key="product.id" class="product-card"
+                    @click="openProductModal(product)">
                     <div class="product-image">
-                      <img :src="product.image_url || '/placeholder-image.jpg'" :alt="product.name" />
+                      <img :src="getFirstImage(product.images) || '/placeholder-image.jpg'" :alt="product.name" />
                     </div>
                     <div class="product-info">
                       <h4 class="product-name">{{ product.name }}</h4>
@@ -75,9 +107,9 @@
 
         <!-- Services Grid -->
         <div v-if="services.length > 0" class="services-grid">
-          <div v-for="service in services" :key="service.id" class="service-card">
+          <div v-for="service in services" :key="service.id" class="service-card" @click="openServiceModal(service)">
             <div class="service-image">
-              <img :src="service.image_url || '/placeholder-image.jpg'" :alt="service.name" />
+              <img :src="getFirstImage(service.images) || '/placeholder-image.jpg'" :alt="service.name" />
             </div>
             <div class="service-info">
               <h4 class="service-name">{{ service.name }}</h4>
@@ -101,15 +133,182 @@
         </div>
       </div>
     </section>
+
+    <!-- Product Modal -->
+    <div v-if="showModal" class="modal-overlay" @click="closeModal">
+      <div class="modal-content" @click.stop>
+        <button class="modal-close" @click="closeModal">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <div class="modal-header">
+          <h2 class="modal-title">{{ selectedProduct?.name }}</h2>
+        </div>
+
+        <div class="modal-body">
+          <div class="modal-images">
+            <div class="images-gallery-container">
+              <button class="gallery-arrow gallery-arrow-left" @click="scrollGallery('left')" :disabled="!canScrollLeft"
+                v-show="getProductImages(selectedProduct?.images).length > 1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </button>
+
+              <div class="images-container" ref="imagesContainer" @scroll="updateScrollButtons">
+                <div v-for="(imageUrl, index) in getProductImages(selectedProduct?.images)" :key="index"
+                  class="modal-image" @click="openZoom(imageUrl, selectedProduct?.name, index)">
+                  <img :src="imageUrl" :alt="`${selectedProduct?.name} - Image ${index + 1}`" />
+                  <div class="zoom-overlay">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+                      <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" />
+                      <line x1="11" y1="8" x2="11" y2="14" stroke="currentColor" stroke-width="2" />
+                      <line x1="8" y1="11" x2="14" y2="11" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <button class="gallery-arrow gallery-arrow-right" @click="scrollGallery('right')"
+                :disabled="!canScrollRight" v-show="getProductImages(selectedProduct?.images).length > 1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-description">
+            <p v-if="selectedProduct?.description">{{ selectedProduct.description }}</p>
+            <p v-else class="no-description">Aucune description disponible</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service Modal -->
+    <div v-if="showServiceModal" class="modal-overlay" @click="closeServiceModal">
+      <div class="modal-content" @click.stop>
+        <button class="modal-close" @click="closeServiceModal">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <div class="modal-header">
+          <h2 class="modal-title">{{ selectedService?.name }}</h2>
+        </div>
+
+        <div class="modal-body">
+          <div class="modal-images">
+            <div class="images-gallery-container">
+              <button class="gallery-arrow gallery-arrow-left" @click="scrollServiceGallery('left')"
+                :disabled="!canScrollServiceLeft" v-show="getServiceImages(selectedService?.images).length > 1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </button>
+
+              <div class="images-container" ref="serviceImagesContainer" @scroll="updateServiceScrollButtons">
+                <div v-for="(imageUrl, index) in getServiceImages(selectedService?.images)" :key="index"
+                  class="modal-image" @click="openZoom(imageUrl, selectedService?.name, index)">
+                  <img :src="imageUrl" :alt="`${selectedService?.name} - Image ${index + 1}`" />
+                  <div class="zoom-overlay">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+                      <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" />
+                      <line x1="11" y1="8" x2="11" y2="14" stroke="currentColor" stroke-width="2" />
+                      <line x1="8" y1="11" x2="14" y2="11" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <button class="gallery-arrow gallery-arrow-right" @click="scrollServiceGallery('right')"
+                :disabled="!canScrollServiceRight" v-show="getServiceImages(selectedService?.images).length > 1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-description">
+            <p v-if="selectedService?.description">{{ selectedService.description }}</p>
+            <p v-else class="no-description">Aucune description disponible</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Zoom Modal -->
+    <div v-if="showZoom" class="zoom-modal-overlay" @click="closeZoom">
+      <div class="zoom-modal-content" @click.stop>
+        <button class="zoom-close" @click="closeZoom">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <!-- Navigation arrows for zoom modal -->
+        <button v-if="zoomImages.length > 1" class="zoom-nav zoom-nav-left" @click="previousZoomImage"
+          :disabled="currentZoomIndex <= 0">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <div class="zoom-image-container">
+          <img :src="currentZoomImage" :alt="`${zoomItemName} - Image ${currentZoomIndex + 1}`" class="zoom-image" />
+        </div>
+
+        <button v-if="zoomImages.length > 1" class="zoom-nav zoom-nav-right" @click="nextZoomImage"
+          :disabled="currentZoomIndex >= zoomImages.length - 1">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <!-- Image counter -->
+        <div v-if="zoomImages.length > 1" class="zoom-counter">
+          {{ currentZoomIndex + 1 }} / {{ zoomImages.length }}
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { fetchAllCategories } from '@/composables/fetchAllCategories';
 import { fetchSubcategoryByCategory } from '@/composables/fetchSubcategoryByCategory';
 import { fetchProductBySubcategory } from '@/composables/fetchProductBySubcategory';
 import { fetchAllServices } from '@/composables/fetchAllServices';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
+
+// Import slideshow images
+import slide0 from '@/assets/slideshow/0.png';
+import slide1 from '@/assets/slideshow/1.png';
+import slide2 from '@/assets/slideshow/2.png';
+import slide3 from '@/assets/slideshow/3.png';
+import slide4 from '@/assets/slideshow/4.png';
+import slide5 from '@/assets/slideshow/5.png';
+import slide6 from '@/assets/slideshow/6.png';
+import slide7 from '@/assets/slideshow/7.png';
+import slide8 from '@/assets/slideshow/8.png';
+import slide9 from '@/assets/slideshow/9.png';
+import slide10 from '@/assets/slideshow/10.png';
 
 const categories = ref([]);
 const services = ref([]);
@@ -117,11 +316,39 @@ const loading = ref(true);
 const subcategories = ref([]);
 const subcategoriesWithProducts = ref([]);
 const currentView = ref('categories'); // 'categories' or 'services'
+const showModal = ref(false);
+const selectedProduct = ref(null);
+const imagesContainer = ref(null);
+const canScrollLeft = ref(false);
+const canScrollRight = ref(false);
+const showServiceModal = ref(false);
+const selectedService = ref(null);
+const serviceImagesContainer = ref(null);
+const canScrollServiceLeft = ref(false);
+const canScrollServiceRight = ref(false);
+const showZoom = ref(false);
+const currentZoomImage = ref('');
+const zoomImages = ref([]);
+const currentZoomIndex = ref(0);
+const zoomItemName = ref('');
+
+// Slideshow data
+const currentSlide = ref(0);
+const slideshowImages = ref([
+  slide0, slide1, slide2, slide3, slide4, slide5,
+  slide6, slide7, slide8, slide9, slide10
+]);
+let slideshowInterval = null;
 
 onMounted(async () => {
   categories.value = await fetchAllCategories();
   services.value = await fetchAllServices();
   loading.value = false;
+  startSlideshow();
+});
+
+onUnmounted(() => {
+  stopSlideshow();
 });
 
 const selectedCategory = ref(null);
@@ -155,15 +382,308 @@ const selectServices = () => {
   selectedCategory.value = null;
 };
 
+// Slideshow methods
+const nextSlide = () => {
+  currentSlide.value = (currentSlide.value + 1) % slideshowImages.value.length;
+};
+
+const previousSlide = () => {
+  currentSlide.value = currentSlide.value === 0 ? slideshowImages.value.length - 1 : currentSlide.value - 1;
+};
+
+const goToSlide = (index) => {
+  currentSlide.value = index;
+};
+
+const startSlideshow = () => {
+  slideshowInterval = setInterval(() => {
+    nextSlide();
+  }, 5000); // Change slide every 5 seconds
+};
+
+const stopSlideshow = () => {
+  if (slideshowInterval) {
+    clearInterval(slideshowInterval);
+    slideshowInterval = null;
+  }
+};
+
+// Helper function to get the first image from the images JSON
+const getFirstImage = (images) => {
+  if (!images) return null;
+
+  try {
+    const imageObj = typeof images === 'string' ? JSON.parse(images) : images;
+    const keys = Object.keys(imageObj);
+    return keys.length > 0 ? imageObj[keys[0]] : null;
+  } catch (error) {
+    console.error('Error parsing images:', error);
+    return null;
+  }
+};
+
+// Helper function to get all images from the images JSON
+const getProductImages = (images) => {
+  if (!images) return [];
+
+  try {
+    const imageObj = typeof images === 'string' ? JSON.parse(images) : images;
+    return Object.values(imageObj);
+  } catch (error) {
+    console.error('Error parsing images:', error);
+    return [];
+  }
+};
+
+// Modal functions
+const openProductModal = async (product) => {
+  selectedProduct.value = product;
+  showModal.value = true;
+  document.body.style.overflow = 'hidden';
+
+  // Wait for the modal to render then update scroll buttons
+  await nextTick();
+  updateScrollButtons();
+};
+
+const closeModal = () => {
+  showModal.value = false;
+  selectedProduct.value = null;
+  document.body.style.overflow = 'auto';
+};
+
+// Gallery scroll functions
+const scrollGallery = (direction) => {
+  if (!imagesContainer.value) return;
+
+  const scrollAmount = 220; // Width of one image + gap
+  const currentScroll = imagesContainer.value.scrollLeft;
+
+  if (direction === 'left') {
+    imagesContainer.value.scrollTo({
+      left: currentScroll - scrollAmount,
+      behavior: 'smooth'
+    });
+  } else {
+    imagesContainer.value.scrollTo({
+      left: currentScroll + scrollAmount,
+      behavior: 'smooth'
+    });
+  }
+};
+
+const updateScrollButtons = () => {
+  if (!imagesContainer.value) return;
+
+  const container = imagesContainer.value;
+  canScrollLeft.value = container.scrollLeft > 0;
+  canScrollRight.value = container.scrollLeft < (container.scrollWidth - container.clientWidth);
+};
+
+// Helper function to get all images from the service images JSON
+const getServiceImages = (images) => {
+  if (!images) return [];
+
+  try {
+    const imageObj = typeof images === 'string' ? JSON.parse(images) : images;
+    return Object.values(imageObj);
+  } catch (error) {
+    console.error('Error parsing service images:', error);
+    return [];
+  }
+};
+
+// Service Modal functions
+const openServiceModal = async (service) => {
+  selectedService.value = service;
+  showServiceModal.value = true;
+  document.body.style.overflow = 'hidden';
+
+  // Wait for the modal to render then update scroll buttons
+  await nextTick();
+  updateServiceScrollButtons();
+};
+
+const closeServiceModal = () => {
+  showServiceModal.value = false;
+  selectedService.value = null;
+  document.body.style.overflow = 'auto';
+};
+
+// Service Gallery scroll functions
+const scrollServiceGallery = (direction) => {
+  if (!serviceImagesContainer.value) return;
+
+  const scrollAmount = 220; // Width of one image + gap
+  const currentScroll = serviceImagesContainer.value.scrollLeft;
+
+  if (direction === 'left') {
+    serviceImagesContainer.value.scrollTo({
+      left: currentScroll - scrollAmount,
+      behavior: 'smooth'
+    });
+  } else {
+    serviceImagesContainer.value.scrollTo({
+      left: currentScroll + scrollAmount,
+      behavior: 'smooth'
+    });
+  }
+};
+
+const updateServiceScrollButtons = () => {
+  if (!serviceImagesContainer.value) return;
+
+  const container = serviceImagesContainer.value;
+  canScrollServiceLeft.value = container.scrollLeft > 0;
+  canScrollServiceRight.value = container.scrollLeft < (container.scrollWidth - container.clientWidth);
+};
+
+// Zoom functionality
+const openZoom = (imageUrl, itemName, index) => {
+  // Determine if this is a product or service and get all images
+  let allImages = [];
+  if (selectedProduct.value) {
+    allImages = getProductImages(selectedProduct.value.images);
+    zoomItemName.value = selectedProduct.value.name;
+  } else if (selectedService.value) {
+    allImages = getServiceImages(selectedService.value.images);
+    zoomItemName.value = selectedService.value.name;
+  }
+
+  zoomImages.value = allImages;
+  currentZoomIndex.value = index;
+  currentZoomImage.value = imageUrl;
+  showZoom.value = true;
+  document.body.style.overflow = 'hidden';
+};
+
+const closeZoom = () => {
+  showZoom.value = false;
+  currentZoomImage.value = '';
+  zoomImages.value = [];
+  currentZoomIndex.value = 0;
+  zoomItemName.value = '';
+  document.body.style.overflow = 'hidden'; // Keep modal scroll locked
+};
+
+const nextZoomImage = () => {
+  if (currentZoomIndex.value < zoomImages.value.length - 1) {
+    currentZoomIndex.value++;
+    currentZoomImage.value = zoomImages.value[currentZoomIndex.value];
+  }
+};
+
+const previousZoomImage = () => {
+  if (currentZoomIndex.value > 0) {
+    currentZoomIndex.value--;
+    currentZoomImage.value = zoomImages.value[currentZoomIndex.value];
+  }
+};
+
 
 </script>
 
 <style scoped>
-.hero {
-  background: linear-gradient(135deg, rgb(20, 36, 69) 0%, rgb(30, 46, 79) 100%);
-  color: white;
-  padding: 80px 0;
-  text-align: center;
+.hero-slideshow {
+  position: relative;
+  height: 500px;
+  overflow: hidden;
+}
+
+.slideshow-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+
+.slide.active {
+  opacity: 1;
+}
+
+.slideshow-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(20, 36, 69, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.slide-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 3;
+  transition: all 0.3s ease;
+  color: #1a202c;
+}
+
+.slide-arrow:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.slide-arrow-prev {
+  left: 20px;
+}
+
+.slide-arrow-next {
+  right: 20px;
+}
+
+.slide-indicators {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 3;
+}
+
+.slide-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.slide-indicator.active {
+  background: white;
+  border-color: white;
+}
+
+.slide-indicator:hover {
+  border-color: white;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .hero-title {
@@ -171,6 +691,8 @@ const selectServices = () => {
   font-weight: 700;
   margin-bottom: 16px;
   letter-spacing: -0.02em;
+  color: white;
+  text-align: center;
 }
 
 .hero-subtitle {
@@ -178,6 +700,8 @@ const selectServices = () => {
   opacity: 0.9;
   max-width: 600px;
   margin: 0 auto;
+  color: white;
+  text-align: center;
 }
 
 .category-nav {
@@ -546,12 +1070,38 @@ const selectServices = () => {
 }
 
 @media (max-width: 768px) {
+  .hero-slideshow {
+    height: 400px;
+  }
+
   .hero-title {
     font-size: 2rem;
   }
 
   .hero-subtitle {
     font-size: 1rem;
+  }
+
+  .slide-arrow {
+    width: 40px;
+    height: 40px;
+  }
+
+  .slide-arrow-prev {
+    left: 10px;
+  }
+
+  .slide-arrow-next {
+    right: 10px;
+  }
+
+  .slide-indicators {
+    bottom: 15px;
+  }
+
+  .slide-indicator {
+    width: 10px;
+    height: 10px;
   }
 
   .nav-tabs {
@@ -595,5 +1145,440 @@ const selectServices = () => {
     min-width: 250px;
   }
 }
-</style>
 
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 1001;
+  backdrop-filter: blur(10px);
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+}
+
+.modal-close svg {
+  color: rgb(20, 36, 69);
+}
+
+.modal-header {
+  padding: 30px 30px 0 30px;
+}
+
+.modal-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgb(20, 36, 69);
+  margin: 0;
+  text-transform: capitalize;
+  line-height: 1.2;
+  padding-right: 60px;
+}
+
+.modal-body {
+  padding: 20px 30px 30px 30px;
+}
+
+.modal-images {
+  margin-bottom: 30px;
+}
+
+.images-gallery-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.gallery-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #e2e8f0;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.gallery-arrow:hover:not(:disabled) {
+  background: white;
+  border-color: rgb(20, 36, 69);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 20px rgba(20, 36, 69, 0.2);
+}
+
+.gallery-arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: translateY(-50%);
+}
+
+.gallery-arrow svg {
+  color: rgb(20, 36, 69);
+  transition: color 0.3s ease;
+}
+
+.gallery-arrow-left {
+  left: -22px;
+}
+
+.gallery-arrow-right {
+  right: -22px;
+}
+
+.images-container {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 0 24px 16px 24px;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+}
+
+.images-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.images-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.images-container::-webkit-scrollbar-thumb {
+  background: rgb(20, 36, 69);
+  border-radius: 4px;
+}
+
+.modal-image {
+  flex-shrink: 0;
+  width: 200px;
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  position: relative;
+  cursor: zoom-in;
+}
+
+.zoom-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: white;
+}
+
+.modal-image:hover .zoom-overlay {
+  opacity: 1;
+}
+
+.modal-image:hover {
+  transform: scale(1.05);
+}
+
+.modal-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-description {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 24px;
+  border-left: 4px solid rgb(20, 36, 69);
+}
+
+.modal-description p {
+  margin: 0;
+  line-height: 1.6;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.no-description {
+  color: #9ca3af !important;
+  font-style: italic;
+}
+
+/* Zoom Modal Styles */
+.zoom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+}
+
+.zoom-modal-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 95vw;
+  max-height: 95vh;
+}
+
+.zoom-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 2001;
+  backdrop-filter: blur(10px);
+  color: white;
+}
+
+.zoom-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.zoom-image-container {
+  max-width: 90%;
+  max-height: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.zoom-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  color: white;
+}
+
+.zoom-nav:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.zoom-nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: translateY(-50%);
+}
+
+.zoom-nav-left {
+  left: 30px;
+}
+
+.zoom-nav-right {
+  right: 30px;
+}
+
+.zoom-counter {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 10px;
+  }
+
+  .modal-content {
+    max-height: 95vh;
+    border-radius: 16px;
+  }
+
+  .modal-header {
+    padding: 20px 20px 0 20px;
+  }
+
+  .modal-title {
+    font-size: 1.5rem;
+    padding-right: 50px;
+  }
+
+  .modal-body {
+    padding: 15px 20px 20px 20px;
+  }
+
+  .modal-close {
+    top: 15px;
+    right: 15px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .gallery-arrow {
+    width: 36px;
+    height: 36px;
+  }
+
+  .gallery-arrow-left {
+    left: -18px;
+  }
+
+  .gallery-arrow-right {
+    right: -18px;
+  }
+
+  .images-container {
+    padding: 0 20px 16px 20px;
+  }
+
+  .modal-image {
+    width: 150px;
+    height: 150px;
+  }
+
+  .modal-description {
+    padding: 20px;
+  }
+
+  /* Zoom modal mobile styles */
+  .zoom-modal-overlay {
+    padding: 10px;
+  }
+
+  .zoom-close {
+    top: 15px;
+    right: 15px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .zoom-nav {
+    width: 50px;
+    height: 50px;
+  }
+
+  .zoom-nav-left {
+    left: 15px;
+  }
+
+  .zoom-nav-right {
+    right: 15px;
+  }
+
+  .zoom-counter {
+    bottom: 20px;
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+
+  .zoom-image-container {
+    max-width: 95%;
+    max-height: 85%;
+  }
+}
+</style>

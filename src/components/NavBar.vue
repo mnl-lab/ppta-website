@@ -8,9 +8,9 @@
           style="height: 70px; margin-right: 20px;"
         />
         <div class="d-none d-sm-block">
-          <h3 class="text-h6 font-weight-bold" style="color: #142445;">
-            Polypièces Transmission
-          </h3>
+            <h3 class="font-weight-bold" style="color: #4DA6FF; font-size: xx-large;">
+            PPTA
+            </h3>
         </div>
       </div>
       
