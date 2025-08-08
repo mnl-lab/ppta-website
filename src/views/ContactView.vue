@@ -66,21 +66,6 @@
                 <v-list-item class="px-0 mb-4">
                   <template v-slot:prepend>
                     <v-avatar color="primary" class="me-4">
-                      <v-icon color="white">mdi-map-marker</v-icon>
-                    </v-avatar>
-                  </template>
-                  <v-list-item-content>
-                    <v-list-item-title class="text-h6 mb-1">Notre adresse</v-list-item-title>
-                    <v-list-item-subtitle class="text-body-1">
-                      24 Rue Andalous, Casablanca<br>
-                      175, Bd Ibn Tachfine Walid, Casablanca
-                    </v-list-item-subtitle>
-                  </v-list-item-content>
-                </v-list-item>
-                
-                <v-list-item class="px-0 mb-4">
-                  <template v-slot:prepend>
-                    <v-avatar color="primary" class="me-4">
                       <v-icon color="white">mdi-phone</v-icon>
                     </v-avatar>
                   </template>
