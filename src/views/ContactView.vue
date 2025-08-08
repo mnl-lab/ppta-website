@@ -10,71 +10,56 @@
           <v-divider />
           
           <v-row class="ma-0">
-            <!-- Contact Form -->
-            <v-col cols="12" md="6" class="pa-6">
-              <v-card-subtitle class="text-h6 pa-0 mb-5 font-weight-medium">Envoyez-nous un message</v-card-subtitle>
-              <v-form @submit.prevent="submitForm">
-                <v-text-field
-                  v-model="form.nom"
-                  label="Nom complet"
-                  variant="outlined"
-                  required
-                  class="mb-4"
-                  prepend-inner-icon="mdi-account"
-                  density="compact"
-                />
-                
-                <v-text-field
-                  v-model="form.email"
-                  label="Adresse email"
-                  variant="outlined"
-                  type="email"
-                  required
-                  class="mb-4"
-                  prepend-inner-icon="mdi-email"
-                  density="compact"
-                />
-                
-                <v-text-field
-                  v-model="form.telephone"
-                  label="Téléphone (optionnel)"
-                  variant="outlined"
-                  class="mb-4"
-                  prepend-inner-icon="mdi-phone"
-                  density="compact"
-                />
-                
-                <v-textarea
-                  v-model="form.message"
-                  label="Votre message"
-                  variant="outlined"
-                  rows="4"
-                  required
-                  class="mb-5"
-                  prepend-inner-icon="mdi-message-text"
-                />
-                
-                <v-btn
-                  type="submit"
-                  color="primary"
-                  size="large"
-                  block
-                  :loading="isSubmitting"
-                  prepend-icon="mdi-send"
-                  class="font-weight-bold"
-                >
-                  Envoyer le message
-                </v-btn>
-              </v-form>
+            <!-- Locations Maps -->
+            <v-col cols="12" class="pa-6 mb-8">
+              <v-card-subtitle class="text-h6 pa-0 mb-5 font-weight-medium">Nos localisations</v-card-subtitle>
+
+              <div class="d-flex flex-column ga-6">
+                <div>
+                  <div class="text-subtitle-1 font-weight-medium mb-2">
+                    24 Rue Andalous, Casablanca
+                  </div>
+                  <div class="map-container rounded-lg elevation-2">
+                    <iframe
+                      title="24 Rue Andalous, Casablanca"
+                      width="100%"
+                      height="100%"
+                      style="border:0"
+                      loading="lazy"
+                      allowfullscreen
+                      referrerpolicy="no-referrer-when-downgrade"
+                      src="https://www.google.com/maps?q=24+Rue+Andalous,+Casablanca&output=embed"
+                    ></iframe>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="text-subtitle-1 font-weight-medium mb-2">
+                    175, Bd Ibn Tachfine Walid, Casablanca
+                  </div>
+                  <div class="map-container rounded-lg elevation-2">
+                    <iframe
+                      title="175, Bd Ibn Tachfine Walid, Casablanca"
+                      width="100%"
+                      height="100%"
+                      style="border:0"
+                      loading="lazy"
+                      allowfullscreen
+                      referrerpolicy="no-referrer-when-downgrade"
+                      src="https://www.google.com/maps?q=175,+Bd+Ibn+Tachfine+Walid,+Casablanca&output=embed"
+                    ></iframe>
+                  </div>
+                </div>
+              </div>
             </v-col>
             
             <!-- Contact Information with Background Image -->
-            <v-col cols="12" md="6" class="pa-0 position-relative">
+            <v-col cols="12" class="pa-0 position-relative">
               <div 
                 class="contact-background-image"
                 :style="{ backgroundImage: `url(${backgroundImage})` }"
               ></div>
-              <div class="pa-6" style="position: relative; z-index: 2; background: rgba(249, 249, 249, 0.9); height: 100%;">
+              <div class="pa-6" style="position: relative; z-index: 2; background: rgba(249, 249, 249, 0.9);">
                 <v-card-subtitle class="text-h6 pa-0 mb-5 font-weight-medium">Nos coordonnées</v-card-subtitle>
               
               <v-list class="bg-transparent">
@@ -87,9 +72,8 @@
                   <v-list-item-content>
                     <v-list-item-title class="text-h6 mb-1">Notre adresse</v-list-item-title>
                     <v-list-item-subtitle class="text-body-1">
-                      175, Bd Ibn Tachfine Walid<br>
-                      Quartier de la gare<br>
-                      Casablanca, Maroc
+                      24 Rue Andalous, Casablanca<br>
+                      175, Bd Ibn Tachfine Walid, Casablanca
                     </v-list-item-subtitle>
                   </v-list-item-content>
                 </v-list-item>
@@ -137,59 +121,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import backgroundImage from '@/assets/contact-background.png'
-
-// Form data
-const form = ref({
-  nom: '',
-  email: '',
-  telephone: '',
-  message: ''
-})
-
-const isSubmitting = ref(false)
-
-// Form submission handler
-const submitForm = async () => {
-  // Basic validation
-  if (!form.value.nom || !form.value.email || !form.value.message) {
-    alert('Veuillez remplir tous les champs obligatoires.')
-    return
-  }
-
-  // Email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(form.value.email)) {
-    alert('Veuillez entrer une adresse email valide.')
-    return
-  }
-
-  isSubmitting.value = true
-  
-  // Simulate form submission
-  try {
-    // Here you would typically send the form data to your backend
-    console.log('Form submitted:', form.value)
-    
-    // Reset form after successful submission
-    form.value = {
-      nom: '',
-      email: '',
-      telephone: '',
-      message: ''
-    }
-    
-    // You could show a success message here
-    alert('Message envoyé avec succès! Nous vous répondrons dans les plus brefs délais.')
-    
-  } catch (error) {
-    console.error('Error submitting form:', error)
-    alert('Erreur lors de l\'envoi du message. Veuillez réessayer.')
-  } finally {
-    isSubmitting.value = false
-  }
-}
 </script>
 
 <style scoped>
@@ -203,5 +135,12 @@ const submitForm = async () => {
   background-position: center;
   background-repeat: no-repeat;
   z-index: 1;
+}
+
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
 }
 </style>
