@@ -31,21 +31,18 @@
           </div>
         </v-col>
 
-        <v-col cols="12" md="4" class="text-center text-md-right">
+        <v-col cols="12" md="4" class="footer-nav-col">
           <h5 class="text-subtitle-1 font-weight-bold text-white mb-2 footer-section-title">
             Navigation
           </h5>
-          <div class="d-flex flex-column ga-1 footer-nav">
-            <v-btn to="/" variant="text" color="white" size="small"
-              class="justify-center justify-md-end footer-nav-btn">
+          <div class="footer-nav-btn-group">
+            <v-btn to="/" variant="text" color="white" size="small" class="footer-nav-btn">
               Accueil
             </v-btn>
-            <v-btn to="/about" variant="text" color="white" size="small"
-              class="justify-center justify-md-end footer-nav-btn">
+            <v-btn to="/about" variant="text" color="white" size="small" class="footer-nav-btn">
               À propos
             </v-btn>
-            <v-btn to="/contact" variant="text" color="white" size="small"
-              class="justify-center justify-md-end footer-nav-btn">
+            <v-btn to="/contact" variant="text" color="white" size="small" class="footer-nav-btn">
               Contact
             </v-btn>
           </div>
@@ -92,8 +89,30 @@
   align-items: center;
 }
 
-.footer-nav {
-  align-items: center;
+
+.footer-nav-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.footer-nav-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-end;
+}
+
+@media (max-width: 960px) {
+  .footer-nav-col {
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  .footer-nav-btn-group {
+    align-items: center !important;
+  }
 }
 
 .footer-nav-btn {
